@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONO-KLIPPET: Det stora tidsrånet</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e0034, #001233);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.07);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            color: #00f2fe;
+            text-shadow: 0 0 10px #00f2fe;
+            margin-bottom: 5px;
+        }
+        .status-box {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .status-item {
+            font-size: 1.1rem;
+        }
+        .progress-container {
+            background-color: #333;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background: linear-gradient(90deg, #00ff87, #60efff);
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+        #story-text {
+            font-size: 1.2rem;
+            min-height: 80px;
+            line-height: 1.5;
+            margin: 20px 0;
+            padding: 10px;
+        }
+        .btn {
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-danger {
+            background: linear-gradient(90deg, #ff0844, #ffb199);
+        }
+        .btn-choice {
+            background: linear-gradient(90deg, #b154fc, #631afc);
+            width: 80%;
+        }
+        .backpack {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>⏳ KRONO-KLIPPET</h1>
+    <div style="color: #4facfe; font-weight: bold; letter-spacing: 2px;">DET STORA TIDSRÅNET</div>
+
+    <div class="status-box">
+        <div class="status-item">Poäng: <span id="score">0</span></div>
+        <div class="status-item">Paradox: <span id="paradox-text">0%</span></div>
+    </div>
+    
+    <div class="progress-container">
+        <div id="paradox-bar" class="progress-bar"></div>
+    </div>
+
+    <div id="story-text">Välkommen, Agent Paradox! Du har en Kvant-Kofot. Res genom historien och stjäl absurda saker, men passa dig för Tidspolisen och överlasta inte tidslinjen!</div>
+    
+    <div id="choices-container">
+        <button class="btn" onclick="startGame()">Starta tidsmaskinen 🚀</button>
+    </div>
+
+    <div class="backpack">
+        🎒 <strong>Din ryggsäck:</strong> <span id="loot-list">Tom</span>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let paradox = 0;
+    let loot = [];
+    
+    let epochs = {
+        1: { namn: "🦕 Dinosauriernas era (-66m år)", sak: "Ett T-Rex-ägg till en omelett", paradox: 25 },
+        2: { namn: "👑 Antika Egypten (1323 f.Kr.)", sak: "Tutankhamuns gyllene fidget spinner", paradox: 15 },
+        3: { namn: "🎨 Renässansen (År 1503)", sak: "Mona Lisas hemliga mustasch-skiss", paradox: 20 },
+        4: { namn: "🛸 Framtiden (År 3026)", sak: "Receptet på odödlig snabbmat", paradox: 35 }
+    };
+
+    function updateUI() {
+        document.getElementById("score").innerText = score;
+        document.getElementById("paradox-text").innerText = paradox + "%";
+        
+        let bar = document.getElementById("paradox-bar");
+        bar.style.width = paradox + "%";
+        
+        if (paradox >= 70) {
+            bar.style.background = "linear-gradient(90deg, #f5576c, #f093fb)";
+        } else if (paradox >= 40) {
+            bar.style.background = "linear-gradient(90deg, #f6d365, #fda085)";
+        } else {
+            bar.style.background = "linear-gradient(90deg, #00ff87, #60efff)";
+        }
+        
+        document.getElementById("loot-list").innerText = loot.length > 0 ? loot.join(", ") : "Tom";
+    }
+
+    function startGame() {
+        score = 0;
+        paradox = 0;
+        loot = [];
+        epochs = {
+            1: { namn: "🦕 Dinosauriernas era (-66m år)", sak: "Ett T-Rex-ägg till en omelett", paradox: 25 },
+            2: { namn: "👑 Antika Egypten (1323 f.Kr.)", sak: "Tutankhamuns gyllene fidget spinner", paradox: 15 },
+            3: { namn: "🎨 Renässansen (År 1503)", sak: "Mona Lisas hemliga mustasch-skiss", paradox: 20 },
+            4: { namn: "🛸 Framtiden (År 3026)", sak: "Receptet på odödlig snabbmat", paradox: 35 }
+        };
+        updateUI();
+        visasHuvudmeny();
+    }
+
+    function visasHuvudmeny() {
+        let optionsHtml = "";
+        let count = 0;
+        
+        document.getElementById("story-text").innerText = "Tidsmaskinen är laddad. Välj en epok att göra ett inbrott i:";
+        
+        for (let key in epochs) {
+            optionsHtml += `<button class="btn btn-choice" onclick="travelTo(${key})">${epochs[key].namn}</button><br>`;
+            count++;
+        }
+        
+        if (count === 0 && paradox < 100) {
+            endGame(true);
+            return;
+        }
+        
+        optionsHtml += `<br><button class="btn btn-danger" onclick="endGame(false)">Fega ur & Res hem 🏃‍♂️</button>`;
+        document.getElementById("choices-container").innerHTML = optionsHtml;
+    }
+
+    function travelTo(key) {
+        let current = epochs[key];
+        delete epochs[key];
+        
+        document.getElementById("story-text").innerText = `🚀 Swisch! Du landar och smyger runt... Du försöker stjäla: ${current.sak}!`;
+        
+        let r = Math.random();
+        if (r < 0.35) {
+            // Tidspolisen kommer!
+            setTimeout(() => {
+                document.getElementById("story-text").innerText = `🚨 LARMET GÅR! Tidspolisen dyker upp och blockerar vägen! Vad gör du?`;
+                document.getElementById("choices-container").innerHTML = `
+                    <button class="btn btn-choice" onclick="handlePolice('banana', ${current.paradox}, '${current.sak}')">Kasta en banan och spring</button>
+                    <button class="btn btn-choice" onclick="handlePolice('cheat', ${current.paradox}, '${current.sak}')">Låtsas vara deras korrupta chef</button>
+                `;
+            }, 1500);
+        } else {
+            // Lyckat direkt
+            setTimeout(() => {
+                paradox += current.paradox;
+                score += 100;
+                loot.push(current.sak);
+                updateUI();
+                
+                if (paradox >= 100) {
+                    endGame(false);
+                } else {
+                    document.getElementById("story-text").innerText = `✨ Snyggt! Stölden av "${current.sak}" lyckades obemärkt!`;
+                    document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="visasHuvudmeny()">Fortsätt</button>`;
+                }
+            }, 1500);
+        }
+    }
+
+    function handlePolice(choice, paradoxIncrease, item) {
+        if (choice === 'cheat') {
+            document.getElementById("story-text").innerText = `😎 Det funkade! Poliserna saluterar nervöst och du kommer undan med bytet plus en bonus!`;
+            score += 150;
+            loot.push(item);
+        } else {
+            document.getElementById("story-text").innerText = `💥 De halkar på bananen! Du kommer undan med prylen, men tidslinjen tar stor skada av kaoset!`;
+            paradox += paradoxIncrease + 15;
+            score += 50;
+            loot.push(item);
+        }
+        
+        updateUI();
+        
+        if (paradox >= 100) {
+            setTimeout(() => { endGame(false); }, 2000);
+        } else {
+            document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="visasHuvudmeny()">Fortsätt</button>`;
+        }
+    }
+
+    function endGame(victory) {
+        if (paradox >= 100) {
+            document.getElementById("story-text").innerText = `💥 PARADOX-KATASTROF! Du ändrade historien för mycket. Du har precis förvandlats till en talande tekanna år 1842. Game Over!`;
+        } else if (victory) {
+            document.getElementById("story-text").innerText = `🎉 MÄSTERTJUV! Du länsade alla epoker och kom tillbaka till nutiden med livet i behåll! Total poäng: ${score}`;
+        } else {
+            document.getElementById("story-text").innerText = `🏃‍♂️ Du avbröt uppdraget och hoppade tillbaka till nutiden i säkerhet. Total poäng: ${score}`;
+        }
+        
+        document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="startGame()">Spela igen 🎮</button>`;
+    }
+</script>
+
+</body>
+</html>
