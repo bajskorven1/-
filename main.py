@@ -13,7 +13,7 @@ def visa_meny(epochs):
     print("\nVar vill du resa härnäst?")
     for k, v in epochs.items():
         print(f"[{k}] {v['namn']}")
-    print("[0] Avbryt och återvänd till nutiden")
+    print(" [0] Avbryt och återvänd till nutiden")
 
 def play_game():
     paradox = 0
