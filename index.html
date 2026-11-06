@@ -1,255 +1,75 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KRONO-KLIPPET: Det stora tidsrånet</title>
+    <title>NEON RUNNER 3D</title>
     <style>
-        body {
-            background: linear-gradient(135deg, #1e0034, #001233);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-        .game-container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: rgba(255, 255, 255, 0.07);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        h1 {
-            color: #00f2fe;
-            text-shadow: 0 0 10px #00f2fe;
-            margin-bottom: 5px;
-        }
-        .status-box {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        .status-item {
-            font-size: 1.1rem;
-        }
-        .progress-container {
-            background-color: #333;
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background: linear-gradient(90deg, #00ff87, #60efff);
-            transition: width 0.4s ease, background 0.4s ease;
-        }
-        #story-text {
-            font-size: 1.2rem;
-            min-height: 80px;
-            line-height: 1.5;
-            margin: 20px 0;
-            padding: 10px;
-        }
-        .btn {
-            background: linear-gradient(90deg, #00f2fe, #4facfe);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: inline-block;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4);
-        }
-        .btn:active {
-            transform: translateY(0);
-        }
-        .btn-danger {
-            background: linear-gradient(90deg, #ff0844, #ffb199);
-        }
-        .btn-choice {
-            background: linear-gradient(90deg, #b154fc, #631afc);
-            width: 80%;
-        }
-        .backpack {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
+        body { margin: 0; overflow: hidden; background: #050510; font-family: sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #00ffcc; font-size: 24px; font-weight: bold; }
+        #go { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(10,10,30,0.9); padding: 30px; border-radius: 15px; border: 2px solid #ff0055; color: white; }
+        button { background: #00ffcc; border: none; padding: 10px 20px; font-size: 18px; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
+    <script src="https://cloudflare.com"></script>
 </head>
 <body>
-
-<div class="game-container">
-    <h1>⏳ KRONO-KLIPPET</h1>
-    <div style="color: #4facfe; font-weight: bold; letter-spacing: 2px;">DET STORA TIDSRÅNET</div>
-
-    <div class="status-box">
-        <div class="status-item">Poäng: <span id="score">0</span></div>
-        <div class="status-item">Paradox: <span id="paradox-text">0%</span></div>
-    </div>
-    
-    <div class="progress-container">
-        <div id="paradox-bar" class="progress-bar"></div>
-    </div>
-
-    <div id="story-text">Välkommen, Agent Paradox! Du har en Kvant-Kofot. Res genom historien och stjäl absurda saker, men passa dig för Tidspolisen och överlasta inte tidslinjen!</div>
-    
-    <div id="choices-container">
-        <button class="btn" onclick="startGame()">Starta tidsmaskinen 🚀</button>
-    </div>
-
-    <div class="backpack">
-        🎒 <strong>Din ryggsäck:</strong> <span id="loot-list">Tom</span>
-    </div>
-</div>
-
-<script>
-    let score = 0;
-    let paradox = 0;
-    let loot = [];
-    
-    let epochs = {
-        1: { namn: "🦕 Dinosauriernas era (-66m år)", sak: "Ett T-Rex-ägg till en omelett", paradox: 25 },
-        2: { namn: "👑 Antika Egypten (1323 f.Kr.)", sak: "Tutankhamuns gyllene fidget spinner", paradox: 15 },
-        3: { namn: "🎨 Renässansen (År 1503)", sak: "Mona Lisas hemliga mustasch-skiss", paradox: 20 },
-        4: { namn: "🛸 Framtiden (År 3026)", sak: "Receptet på odödlig snabbmat", paradox: 35 }
-    };
-
-    function updateUI() {
-        document.getElementById("score").innerText = score;
-        document.getElementById("paradox-text").innerText = paradox + "%";
-        
-        let bar = document.getElementById("paradox-bar");
-        bar.style.width = paradox + "%";
-        
-        if (paradox >= 70) {
-            bar.style.background = "linear-gradient(90deg, #f5576c, #f093fb)";
-        } else if (paradox >= 40) {
-            bar.style.background = "linear-gradient(90deg, #f6d365, #fda085)";
-        } else {
-            bar.style.background = "linear-gradient(90deg, #00ff87, #60efff)";
+    <div id="ui">POÄNG: <span id="score">0</span></div>
+    <div id="go"><h1>GAME OVER</h1><button onclick="reset()">SPELA IGEN</button></div>
+    <script>
+        let scene, camera, renderer, player, platforms = [], score = 0, isOver = false;
+        let keys = { w:0, a:0, s:0, d:0 }, velY = 0, jumping = false;
+        function init() {
+            scene = new THREE.Scene(); scene.background = new THREE.Color(0x0a0a18);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            let light = new THREE.DirectionalLight(0x00ffff, 0.8); light.position.set(10,20,10); scene.add(light);
+            player = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({ color: 0x00ffcc }));
+            player.position.set(0,1,0); scene.add(player);
+            buildTrack();
+            window.addEventListener('keydown', e => handle(e, 1)); window.addEventListener('keyup', e => handle(e, 0));
+            animate();
         }
-        
-        document.getElementById("loot-list").innerText = loot.length > 0 ? loot.join(", ") : "Tom";
-    }
-
-    function startGame() {
-        score = 0;
-        paradox = 0;
-        loot = [];
-        epochs = {
-            1: { namn: "🦕 Dinosauriernas era (-66m år)", sak: "Ett T-Rex-ägg till en omelett", paradox: 25 },
-            2: { namn: "👑 Antika Egypten (1323 f.Kr.)", sak: "Tutankhamuns gyllene fidget spinner", paradox: 15 },
-            3: { namn: "🎨 Renässansen (År 1503)", sak: "Mona Lisas hemliga mustasch-skiss", paradox: 20 },
-            4: { namn: "🛸 Framtiden (År 3026)", sak: "Receptet på odödlig snabbmat", paradox: 35 }
-        };
-        updateUI();
-        visasHuvudmeny();
-    }
-
-    function visasHuvudmeny() {
-        let optionsHtml = "";
-        let count = 0;
-        
-        document.getElementById("story-text").innerText = "Tidsmaskinen är laddad. Välj en epok att göra ett inbrott i:";
-        
-        for (let key in epochs) {
-            optionsHtml += `<button class="btn btn-choice" onclick="travelTo(${key})">${epochs[key].namn}</button><br>`;
-            count++;
+        function buildTrack() {
+            platforms.forEach(p => scene.remove(p)); platforms = []; let z = 0;
+            for (let i=0; i<30; i++) {
+                let w = i===0 ? 4 : Math.random()*3+2, l = i===0 ? 10 : Math.random()*5+5, x = i===0 ? 0 : (Math.random()-0.5)*4;
+                let plat = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, l), new THREE.MeshStandardMaterial({ color: i%2===0?0xff0055:0x7a00ff }));
+                plat.position.set(x, 0, z); plat.userData = { w:w, l:l }; scene.add(plat); platforms.push(plat);
+                z -= l + (Math.random()*3+2);
+            }
         }
-        
-        if (count === 0 && paradox < 100) {
-            endGame(true);
-            return;
+        function handle(e, val) {
+            if (e.code==='KeyW' || e.code==='ArrowUp') keys.w = val;
+            if (e.code==='KeyS' || e.code==='ArrowDown') keys.s = val;
+            if (e.code==='KeyA' || e.code==='ArrowLeft') keys.a = val;
+            if (e.code==='KeyD' || e.code==='ArrowRight') keys.d = val;
+            if (e.code==='Space' && val && !jumping) { velY = 0.2; jumping = true; }
         }
-        
-        optionsHtml += `<br><button class="btn btn-danger" onclick="endGame(false)">Fega ur & Res hem 🏃‍♂️</button>`;
-        document.getElementById("choices-container").innerHTML = optionsHtml;
-    }
-
-    function travelTo(key) {
-        let current = epochs[key];
-        delete epochs[key];
-        
-        document.getElementById("story-text").innerText = `🚀 Swisch! Du landar och smyger runt... Du försöker stjäla: ${current.sak}!`;
-        
-        let r = Math.random();
-        if (r < 0.35) {
-            // Tidspolisen kommer!
-            setTimeout(() => {
-                document.getElementById("story-text").innerText = `🚨 LARMET GÅR! Tidspolisen dyker upp och blockerar vägen! Vad gör du?`;
-                document.getElementById("choices-container").innerHTML = `
-                    <button class="btn btn-choice" onclick="handlePolice('banana', ${current.paradox}, '${current.sak}')">Kasta en banan och spring</button>
-                    <button class="btn btn-choice" onclick="handlePolice('cheat', ${current.paradox}, '${current.sak}')">Låtsas vara deras korrupta chef</button>
-                `;
-            }, 1500);
-        } else {
-            // Lyckat direkt
-            setTimeout(() => {
-                paradox += current.paradox;
-                score += 100;
-                loot.push(current.sak);
-                updateUI();
-                
-                if (paradox >= 100) {
-                    endGame(false);
-                } else {
-                    document.getElementById("story-text").innerText = `✨ Snyggt! Stölden av "${current.sak}" lyckades obemärkt!`;
-                    document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="visasHuvudmeny()">Fortsätt</button>`;
+        function animate() {
+            if (isOver) return; requestAnimationFrame(animate);
+            if (keys.w) player.position.z -= 0.15; if (keys.s) player.position.z += 0.15;
+            if (keys.a) player.position.x -= 0.1; if (keys.d) player.position.x += 0.1;
+            player.position.y += velY; let onG = false;
+            for (let p of platforms) {
+                let pd = p.userData, pX = player.position.x, pZ = player.position.z;
+                if (pX >= p.position.x-pd.w/2-0.4 && pX <= p.position.x+pd.w/2+0.4 && pZ >= p.position.z-pd.l/2-0.4 && pZ <= p.position.z+pd.l/2+0.4) {
+                    if (player.position.y >= p.position.y+0.25 && player.position.y <= p.position.y+0.75 && velY <= 0) {
+                        player.position.y = p.position.y+0.75; velY = 0; jumping = false; onG = true; break;
+                    }
                 }
-            }, 1500);
+            }
+            if (!onG) velY -= 0.008;
+            let s = Math.floor(Math.abs(player.position.z)*10); if (s > score) { score = s; document.getElementById("score").innerText = score; }
+            camera.position.set(player.position.x, player.position.y+3.5, player.position.z+7); camera.lookAt(player.position.x, player.position.y, player.position.z-2);
+            if (player.position.y < -10) { isOver = true; document.getElementById("go").style.display = "block"; }
+            renderer.render(scene, camera);
         }
-    }
-
-    function handlePolice(choice, paradoxIncrease, item) {
-        if (choice === 'cheat') {
-            document.getElementById("story-text").innerText = `😎 Det funkade! Poliserna saluterar nervöst och du kommer undan med bytet plus en bonus!`;
-            score += 150;
-            loot.push(item);
-        } else {
-            document.getElementById("story-text").innerText = `💥 De halkar på bananen! Du kommer undan med prylen, men tidslinjen tar stor skada av kaoset!`;
-            paradox += paradoxIncrease + 15;
-            score += 50;
-            loot.push(item);
+        function reset() {
+            score = 0; document.getElementById("score").innerText = "0"; document.getElementById("go").style.display = "none";
+            player.position.set(0,2,0); velY = 0; jumping = false; isOver = false; buildTrack(); animate();
         }
-        
-        updateUI();
-        
-        if (paradox >= 100) {
-            setTimeout(() => { endGame(false); }, 2000);
-        } else {
-            document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="visasHuvudmeny()">Fortsätt</button>`;
-        }
-    }
-
-    function endGame(victory) {
-        if (paradox >= 100) {
-            document.getElementById("story-text").innerText = `💥 PARADOX-KATASTROF! Du ändrade historien för mycket. Du har precis förvandlats till en talande tekanna år 1842. Game Over!`;
-        } else if (victory) {
-            document.getElementById("story-text").innerText = `🎉 MÄSTERTJUV! Du länsade alla epoker och kom tillbaka till nutiden med livet i behåll! Total poäng: ${score}`;
-        } else {
-            document.getElementById("story-text").innerText = `🏃‍♂️ Du avbröt uppdraget och hoppade tillbaka till nutiden i säkerhet. Total poäng: ${score}`;
-        }
-        
-        document.getElementById("choices-container").innerHTML = `<button class="btn" onclick="startGame()">Spela igen 🎮</button>`;
-    }
-</script>
-
+        window.onload = init;
+    </script>
 </body>
 </html>
